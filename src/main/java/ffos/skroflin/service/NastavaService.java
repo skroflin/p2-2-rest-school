@@ -44,4 +44,28 @@ public class NastavaService extends MainService{
         session.persist(n);
         session.getTransaction().commit();
     }
+    
+    public boolean dodajGrupuNaNastavu(int nastavaSifra, int grupaSifra){
+        session.beginTransaction();
+        Nastava n = session.get(Nastava.class, nastavaSifra);
+        Grupa g = session.get(Grupa.class, grupaSifra);
+        n.setGrupa(g);
+        session.getTransaction().commit();
+        return true;
+    }
+    
+    public boolean makniGrupuSaNastave(int sifra){
+        session.beginTransaction();
+        Nastava n = session.get(Nastava.class, sifra);
+        n.setGrupa(null);
+        session.beginTransaction().commit();
+        return true;
+    }
+    
+    public List<Nastava> getNastaveZaGrupu(int sifra){
+        return session.createQuery(
+                "from skroflin_nastava n where n.grupa.sifra = :sifra", Nastava.class)
+                .setParameter("sifra", sifra)
+                .list();
+    }
 }

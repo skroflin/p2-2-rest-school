@@ -16,8 +16,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -121,6 +124,119 @@ public class NastavaController {
                 return new ResponseEntity<>("Naslov predavanja je obavezan!", HttpStatus.NO_CONTENT);
             }
             return new ResponseEntity<>(nastavaService.post(dto), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @Operation(
+            summary = "Dodaje grupu na nastavu",
+            description = "Dodaje jednu grupu na jednu nastavu. "
+            + "Ukoliko ne postoji nastava ili grupa za danu šifru vraća prazan odgovor",
+            tags = {"nastava", "post", "dodajGrupuNaNastavu", "grupa"},
+            parameters = {
+                @Parameter(
+                        name = "nastavaSifra",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Primarni ključ nastave u bazi podataka, mora biti veći od nula",
+                        example = "1"
+                ),
+                @Parameter(
+                        name = "grupaSifra",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Primarni ključ grupe u bazi podataka, mora biti veći od nula",
+                        example = "1"
+                )   
+            })
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Nastava.class), mediaType = "application/json")),
+        @ApiResponse(responseCode = "204", description = "Ne postoji nastava ili grupa za danu šifru", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "400", description = "Šifra mora biti veća od nula", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
+    @PostMapping("/dodajGrupuNaNastavu")
+    public ResponseEntity dodajGrupuNaNastavu(
+            @RequestParam int nastavaSifra,
+            @RequestParam int grupaSifra
+    ){
+        try {
+            boolean uspjeh = nastavaService.dodajGrupuNaNastavu(nastavaSifra, grupaSifra);
+            if (!uspjeh) {
+                return new ResponseEntity<>("Grupa ili nastava ne postoji", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>("Grupa dodana na nastavu.", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @Operation(
+            summary = "Miče grupu sa nastave",
+            description = "Uklanja grupu sa nastave po danoj šifri nastave. "
+            + "Ukoliko ne postoji nastava po zadanoj šifri, vraća grešku.",
+            tags = {"delete", "makniGrupuSaNastave", "nastava", "grupa"},
+            parameters = {
+                @Parameter(
+                        name = "sifra",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Primarni ključ grupe u bazi podataka, mora biti veći od nula",
+                        example = "1"
+                )})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Obrisano", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "400", description = "Šifra mora biti veća od nula ili nastava ne postoji", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
+    @DeleteMapping("/makniGrupuSaNastave")
+    public ResponseEntity makniGrupuSaNastave(
+            @RequestParam int sifra
+    ){
+        try {
+            boolean uspjeh = nastavaService.makniGrupuSaNastave(sifra);
+            if (!uspjeh) {
+                return new ResponseEntity<>("Nastava ne postoji", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>("Grupa uklonjena sa nastave", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @Operation(
+            summary = "Dohvaća nastavu za grupu",
+            description = "Dohvaća nastavu za grupe po danoj šifri sa svim podacima. "
+            + "Ukoliko ne postoji nastava za danu šifru vraća prazan odgovor",
+            tags = {"nastava", "grupa", "get", "getNastaveZaGrupu"},
+            parameters = {
+                @Parameter(
+                        name = "sifra",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Primarni ključ grupe u bazi podataka, mora biti veći od nula",
+                        example = "1"
+                )})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Nastava.class), mediaType = "application/json")),
+        @ApiResponse(responseCode = "204", description = "Ne postoji grupe za danu šifru", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "400", description = "Šifra mora biti veća od nula", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
+    @GetMapping("/getNastaveZaGrupu")
+    public ResponseEntity getNastaveZaGrupu(
+            @RequestParam int sifra
+    ){
+        try {
+            if (sifra <= 0) {
+                return new ResponseEntity<>("Šifra ne smije biti manja od 0", HttpStatus.BAD_REQUEST);
+            }
+            List<Nastava> nastave = nastavaService.getNastaveZaGrupu(sifra);
+            if (nastave.isEmpty()) {
+                return new ResponseEntity<>("Ne postoji grupa s navedenom šifrom", HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(nastave, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
