@@ -39,4 +39,11 @@ public class GodinaService extends MainService{
         session.persist(g);
         session.getTransaction().commit();
     }
+    
+    public List<Godina> getGodinePoAktivnosti(boolean aktivna){
+        return session.createQuery(
+                "from skroflin_godina g where g.aktivna = :aktivna", Godina.class)
+                .setParameter("aktivna", aktivna)
+                .list();
+    }
 }

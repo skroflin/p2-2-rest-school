@@ -42,4 +42,9 @@ public class GrupaService extends MainService{
         g.setGodina(god);
         session.persist(g);
     }
+    
+    public Long getRedovite(){
+        return session.createQuery(
+                "select sum(g.brojRedovnih) from skroflin_grupa g", Long.class).getSingleResult();
+    }
 }

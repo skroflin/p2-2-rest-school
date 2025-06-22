@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author svenk
  */
+@Tag(name = "Skroflin -> Godina", description = "Sve dostupne rute koje se odnose na entitet Godina.")
 @RestController
 @RequestMapping("/api/skroflin/godina")
 public class GodinaController {
@@ -115,6 +118,40 @@ public class GodinaController {
             return new ResponseEntity<>(godinaService.post(dto), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
+    }
+    
+    @Operation(
+            summary = "Dohvaća godine po aktivnosti",
+            description = "Dohvaća godinu po tome je li aktivna ili ne uz sve svoje podatke. "
+            + "Ukoliko ne postoje godine za dani parametar, vraća prazan odgovor",
+            tags = {"godina", "get", "getGodinePoAktivnosti"},
+            parameters = {
+                @Parameter(
+                        name = "aktivna",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Booleov tip podatka (true or false)!",
+                        example = "true"
+                )})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Godina.class), mediaType = "application/json")),
+        @ApiResponse(responseCode = "204", description = "Ne postoji godina za danu vrijednost", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "400", description = "Vrijednost se mora odabrati!", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
+    @GetMapping("getGodinePoAktivnosti")
+    public ResponseEntity getGodinePoAktivnosti(
+            @RequestParam boolean aktivna
+    ){
+        try {
+            List<Godina> godine = godinaService.getGodinePoAktivnosti(aktivna);
+            if (godine.isEmpty()) {
+                return new ResponseEntity<>("Ne postoje godine s navedenim uvjetom", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(godine, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

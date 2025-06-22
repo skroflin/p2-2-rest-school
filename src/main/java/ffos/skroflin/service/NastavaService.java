@@ -58,7 +58,7 @@ public class NastavaService extends MainService{
         session.beginTransaction();
         Nastava n = session.get(Nastava.class, sifra);
         n.setGrupa(null);
-        session.beginTransaction().commit();
+        session.getTransaction().commit();
         return true;
     }
     

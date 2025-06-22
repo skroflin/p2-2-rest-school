@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author svenk
  */
+@Tag(name = "Skroflin -> Grupa", description = "Sve dostupne rute koje se odnose na entitet Grupa.")
 @RestController
 @RequestMapping("/api/skroflin/grupa")
 public class GrupaController {
@@ -120,6 +122,23 @@ public class GrupaController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-  
+    }
+
+    @Operation(
+            summary = "Dohvaća ukupan broj redovitih studenata", tags = {"get", "grupa"},
+            description = "Dohvaća ukupan broj (sum) redovitih studenata sa svim podacima"
+    )
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Grupa.class)))),
+                @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+            })
+    @GetMapping("/getRedovite")
+    public ResponseEntity getRedovite(){
+        try {
+            return new ResponseEntity<>(grupaService.getRedovite(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

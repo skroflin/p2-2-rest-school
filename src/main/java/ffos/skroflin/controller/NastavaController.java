@@ -16,10 +16,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author svenk
  */
+@Tag(name = "Skroflin -> Nastava", description = "Sve dostupne rute koje se odnose na entitet Nastava.")
 @RestController
 @RequestMapping("/api/skroflin/nastava")
 public class NastavaController {
