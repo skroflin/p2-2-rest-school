@@ -5,6 +5,7 @@
 package ffos.skroflin.controller;
 
 import ffos.skroflin.model.Godina;
+import ffos.skroflin.model.dto.GodinaDTO;
 import ffos.skroflin.service.GodinaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,5 +90,31 @@ public class GodinaController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         
+    }
+    
+    @Operation(
+            summary = "Kreira novu godinu",
+            tags = {"post", "godina"},
+            description = "Kreira novu godinu. Naziv godine obavezan!")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Kreirano", content = @Content(schema = @Schema(implementation = Godina.class), mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", description = "Loš zahtjev (nije primljen dto objekt ili ne postoji ime ili prezime ili jmbag)", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
+    @PostMapping("/post")
+    public ResponseEntity post(
+            @RequestBody(required = true) GodinaDTO dto
+    ){
+        try {
+            if (dto == null) {
+                return new ResponseEntity<>("Nisu uneseni traženi podaci", HttpStatus.NO_CONTENT);
+            }
+            if (dto.naziv() == null || dto.naziv().isEmpty()) {
+                return new ResponseEntity<>("Naziv godina je obavezan!", HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(godinaService.post(dto), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
     }
 }
