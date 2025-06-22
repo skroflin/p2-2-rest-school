@@ -5,6 +5,7 @@
 package ffos.skroflin.service;
 
 import ffos.skroflin.model.Godina;
+import ffos.skroflin.model.dto.GodinaDTO;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -20,5 +21,22 @@ public class GodinaService extends MainService{
     
     public Godina getBySifra(int sifra){
         return session.get(Godina.class, sifra);
+    }
+    
+    public Godina post(GodinaDTO o){
+        Godina g = new Godina(o.naziv(), o.aktivna());
+        session.beginTransaction();
+        session.persist(g);
+        session.getTransaction().commit();
+        return g;
+    }
+    
+    public void put(GodinaDTO o, int sifra){
+        session.beginTransaction();
+        Godina g = (Godina) session.get(Godina.class, sifra);
+        g.setNaziv(o.naziv());
+        g.setAktivna(o.aktivna());
+        session.persist(g);
+        session.getTransaction().commit();
     }
 }

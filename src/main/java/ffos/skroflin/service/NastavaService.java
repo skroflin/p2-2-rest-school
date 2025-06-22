@@ -4,6 +4,9 @@
  */
 package ffos.skroflin.service;
 
+import ffos.skroflin.model.Grupa;
+import ffos.skroflin.model.Nastava;
+import ffos.skroflin.model.dto.NastavaDTO;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +16,32 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class NastavaService extends MainService{
-    public List<NastavaService> getAll(){
-        return session.createQuery("from skroflin_nastava", NastavaService.class).list();
+    public List<Nastava> getAll(){
+        return session.createQuery("from skroflin_nastava", Nastava.class).list();
     }
     
-    public NastavaService getBySifra(int sifra){
-        return session.get(NastavaService.class, sifra);
+    public Nastava getBySifra(int sifra){
+        return session.get(Nastava.class, sifra);
+    }
+    
+    public Nastava post(NastavaDTO o){
+        Grupa g = session.get(Grupa.class, o.grupaSifra());
+        Nastava n = new Nastava(o.datumNastave(), o.naslovPredavanje(), o.cijena(),g);
+        session.beginTransaction();
+        session.persist(n);
+        session.getTransaction().commit();
+        return n;
+    }
+    
+    public void put(NastavaDTO o, int sifra){
+        session.beginTransaction();
+        Grupa g = session.get(Grupa.class, o.grupaSifra());
+        Nastava n = (Nastava) session.get(Nastava.class, sifra);
+        n.setDatumNastave(o.datumNastave());
+        n.setNaslovPredavanja(o.naslovPredavanje());
+        n.setCijena(o.cijena());
+        n.setGrupa(g);
+        session.persist(n);
+        session.getTransaction().commit();
     }
 }
