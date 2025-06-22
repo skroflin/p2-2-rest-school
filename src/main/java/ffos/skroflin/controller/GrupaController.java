@@ -6,6 +6,13 @@ package ffos.skroflin.controller;
 
 import ffos.skroflin.model.Grupa;
 import ffos.skroflin.service.GrupaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +33,15 @@ public class GrupaController {
         this.grupaService = grupaService;
     }
     
+    @Operation(
+            summary = "Dohvaća sve grupe", tags = {"get", "grupa"},
+            description = "Dohvaća sve prostorije sa svim podacima"
+    )
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Grupa.class)))),
+                @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+            })
     @GetMapping("/get")
     public ResponseEntity getAll(){
         try {
@@ -35,6 +51,25 @@ public class GrupaController {
         }
     }
     
+    @Operation(
+            summary = "Dohvaća grupu po šifri",
+            description = "Dohvaća grupu po danoj šifri sa svim podacima. "
+            + "Ukoliko ne postoji grupa za danu šifru vraća prazan odgovor",
+            tags = {"grupa", "getBy"},
+            parameters = {
+                @Parameter(
+                        name = "sifra",
+                        allowEmptyValue = false,
+                        required = true,
+                        description = "Primarni ključ grupe u bazi podataka, mora biti veći od nula",
+                        example = "2"
+                )})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = Grupa.class), mediaType = "application/json")),
+        @ApiResponse(responseCode = "204", description = "Ne postoji grupa za danu šifru", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "400", description = "Šifra mora biti veća od nula", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html")),
+        @ApiResponse(responseCode = "500", description = "Interna pogreška servera", content = @Content(schema = @Schema(implementation = String.class), mediaType = "text/html"))
+    })
     @GetMapping("/getBySifra")
     public ResponseEntity getBySifra(
             @RequestParam int sifra
